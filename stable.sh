@@ -87,7 +87,7 @@ tr(){
     case "$k" in
       need_root)   echo "Run as root: sudo ./$(basename "$0")" ;;
       press)       echo "Press Enter to return to menu..." ;;
-      menu_title)  echo "${APP_NAME} Node — installer & manager" ;;
+      menu_title)  echo "${APP_NAME} Node" ;;
       m1) echo "Prepare server (update/upgrade, deps)";;
       m2) echo "Install node";;
       m3) echo "Start node";;
@@ -194,7 +194,7 @@ tr(){
     case "$k" in
       need_root)   echo "запусти от root: sudo ./$(basename "$0")" ;;
       press)       echo "Нажмите Enter для возврата в меню..." ;;
-      menu_title)  echo "Нода ${APP_NAME} — установщик и менеджер" ;;
+      menu_title)  echo "Нода ${APP_NAME}" ;;
       m1) echo "Подготовка сервера";;
       m2) echo "Установка ноды";;
       m3) echo "Запустить ноду";;
@@ -856,7 +856,7 @@ health_check(){
 # -----------------------------
 menu(){
   clear; logo; hr
-  echo -e "${cBold}${cM}$(tr menu_title)${c0} ${cDim}(v${SCRIPT_VERSION})${c0}\n"
+  echo -e "${cBold}${cM}$(tr menu_title)${c0}\n"
   echo -e "1)  📦 $(tr m1)"
   echo -e "2)  ⚙️  $(tr m2)"
   echo -e "3)  🚀 $(tr m3)"
