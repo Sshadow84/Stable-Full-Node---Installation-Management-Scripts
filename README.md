@@ -402,6 +402,6 @@ curl -s localhost:26657/status | jq -r '.result.sync_info.latest_block_height'
 
 *Если этот инструмент вам помог, поставьте ⭐ на GitHub*
 
-**Сделано с ❤️ для сообщества Stable**
+**Сделано с ❤️ для сообщества Profit Nodes**
 
 </div>
