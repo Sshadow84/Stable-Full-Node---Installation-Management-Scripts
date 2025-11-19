@@ -56,7 +56,7 @@ LANG="ru"
 # -----------------------------
 # GitHub bootstrap (set to YOUR repo raw URLs)
 # -----------------------------
-GITHUB_REPO_RAW="https://raw.githubusercontent.com/Sshadow84/stable/main"
+GITHUB_REPO_RAW="https://raw.githubusercontent.com/Sshadow84/Stable-Full-Node---Installation-Management-Scripts/main"
 SNAP_HELPER="/usr/local/bin/stable-apply-snapshot.sh"
 SNAP_HELPER_URL="${GITHUB_REPO_RAW}/stable-apply-snapshot.sh"
 MANAGER_URL="${GITHUB_REPO_RAW}/stable_usage.sh"

@@ -29,7 +29,7 @@ looks solid and has priority status in the node community.
 **1️⃣ Download and run the installer:**
 
 ``` bash
-wget -q -O stable.sh https://raw.githubusercontent.com/Sshadow84/stable/refs/heads/main/stable.sh && sudo chmod +x stable.sh && ./stable.sh
+wget -q -O stable.sh https://raw.githubusercontent.com/Sshadow84/Stable-Full-Node---Installation-Management-Scripts/refs/heads/main/stable.sh && sudo chmod +x stable.sh && ./stable.sh
 ```
 
 **2️⃣ Choose your language**, then run:\
@@ -95,7 +95,7 @@ All indicators should be **green ✅**
 1️⃣ **Скачиваем скрипт:**
 
 ``` bash
-wget -q -O stable.sh https://raw.githubusercontent.com/Sshadow84/stable/refs/heads/main/stable.sh && sudo chmod +x stable.sh && ./stable.sh
+wget -q -O stable.sh https://raw.githubusercontent.com/Sshadow84/Stable-Full-Node---Installation-Management-Scripts/refs/heads/main/stable.sh && sudo chmod +x stable.sh && ./stable.sh
 ```
 
 2️⃣ **Выбираем язык**, затем запускаем:\
