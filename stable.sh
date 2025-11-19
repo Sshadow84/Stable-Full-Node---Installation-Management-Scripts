@@ -108,6 +108,8 @@ tr(){
 
       prep_start)  echo "Updating APT and installing dependencies...";;
       prep_done)   echo "Server is ready.";;
+      prep_firewall) echo "Configuring firewall...";;
+      prep_firewall_done) echo "Firewall configured (port 26656 opened)";;
       ask_moniker) echo "Moniker (node name):";;
       bin_fetch)   echo "Downloading and installing stabled binary...";;
       init_node)   echo "Initializing node with chain-id ${CHAIN_ID}...";;
@@ -215,6 +217,8 @@ tr(){
 
       prep_start)  echo "Обновляю APT и ставлю зависимости...";;
       prep_done)   echo "Сервер готов.";;
+      prep_firewall) echo "Настраиваю файрвол...";;
+      prep_firewall_done) echo "Файрвол настроен (порт 26656 открыт)";;
       ask_moniker) echo "Моникер (имя узла):";;
       bin_fetch)   echo "Скачиваю и устанавливаю бинарь stabled...";;
       init_node)   echo "Инициализирую ноду с chain-id ${CHAIN_ID}...";;
@@ -308,6 +312,15 @@ prepare_server(){
   info "$(tr prep_start)"
   apt update && apt upgrade -y
   apt install -y curl wget tar unzip jq lz4 pv
+  
+  # Открыть P2P порт для входящих соединений
+  if command -v ufw >/dev/null 2>&1; then
+    info "$(tr prep_firewall)"
+    ufw allow 26656/tcp comment 'Stable Node P2P' >/dev/null 2>&1 || true
+    ufw allow 26656/udp comment 'Stable Node P2P' >/dev/null 2>&1 || true
+    ok "$(tr prep_firewall_done)"
+  fi
+  
   ok "$(tr prep_done)"
 }
 
