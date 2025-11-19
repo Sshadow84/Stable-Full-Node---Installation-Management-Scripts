@@ -8,8 +8,6 @@
 [![Shell Script](https://img.shields.io/badge/Shell_Script-4EAA25?style=flat&logo=gnu-bash&logoColor=white)](https://www.gnu.org/software/bash/)
 [![Stable Network](https://img.shields.io/badge/Сеть-Stable_Testnet-blue)](https://stable.xyz)
 
-*Профессиональные инструменты для запуска нод блокчейна Stable*
-
 [Установка](#-быстрый-старт) • [Возможности](#-возможности) • [Требования](#-системные-требования) • [Документация](#-руководство-по-использованию) • [Поддержка](#-официальные-ресурсы)
 
 </div>
