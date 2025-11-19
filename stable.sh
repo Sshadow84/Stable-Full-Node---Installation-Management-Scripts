@@ -72,8 +72,8 @@ SNAP_TIMER="stable-apply-snapshot.timer"
 choose_lang(){
   clear; logo
   echo -e "\n${cBold}${cM}Select language / Выберите язык${c0}"
-  echo "1) Русский"
-  echo "2) English"
+  echo -e "1) 🇷🇺 Русский"
+  echo -e "2) 🇬🇧 English"
   read -rp "> " a
   case "${a:-}" in
     2) LANG="en" ;;
@@ -577,12 +577,12 @@ snapshot_auto_menu(){
   while true; do
     clear; hr
     echo -e "${cBold}${cM}=== $(tr auto_title) ===${c0}\n"
-    echo "1) Install/Update daily timer"
-    echo "2) Disable timer"
-    echo "3) Run snapshot now (oneshot)"
-    echo "4) Status"
-    echo "5) $(tr auto_fetch)"
-    echo "0) Back"
+    echo -e "1) ⏰ Install/Update daily timer"
+    echo -e "2) ⛔ Disable timer"
+    echo -e "3) ▶️  Run snapshot now (oneshot)"
+    echo -e "4) 📊 Status"
+    echo -e "5) 🔄 $(tr auto_fetch)"
+    echo -e "0) ◀️  Back"
     hr
     read -rp "> " a
     case "${a:-}" in
@@ -857,22 +857,22 @@ health_check(){
 menu(){
   clear; logo; hr
   echo -e "${cBold}${cM}$(tr menu_title)${c0} ${cDim}(v${SCRIPT_VERSION})${c0}\n"
-  echo "1)  $(tr m1)"
-  echo "2)  $(tr m2)"
-  echo "3)  $(tr m3)"
-  echo "4)  $(tr m4)"
-  echo "5)  $(tr m5)"
-  echo "6)  $(tr m6)"
-  echo "7)  $(tr m7)"
-  echo "8)  $(tr m8)"
-  echo "9)  $(tr m9)"
-  echo "10) $(tr m10)"
-  echo "11) $(tr m11)"
-  echo "12) $(tr m12)"
-  echo "13) $(tr m13)"
-  echo "14) $(tr m14)"
-  echo "15) $(tr m15)"
-  echo "0)  $(tr m0)"
+  echo -e "1)  📦 $(tr m1)"
+  echo -e "2)  ⚙️  $(tr m2)"
+  echo -e "3)  🚀 $(tr m3)"
+  echo -e "4)  📜 $(tr m4)"
+  echo -e "5)  📊 $(tr m5)"
+  echo -e "6)  🔄 $(tr m6)"
+  echo -e "7)  🗑️  $(tr m7)"
+  echo -e "8)  🏷️  $(tr m8)"
+  echo -e "9)  💚 $(tr m9)"
+  echo -e "10) 📸 $(tr m10)"
+  echo -e "11) ⏰ $(tr m11)"
+  echo -e "12) 🌐 $(tr m12)"
+  echo -e "13) 🤖 $(tr m13)"
+  echo -e "14) ⬆️  $(tr m14)"
+  echo -e "15) ⬇️  $(tr m15)"
+  echo -e "0)  ❌ $(tr m0)"
   hr
   read -rp "> " c
   case "${c:-}" in
