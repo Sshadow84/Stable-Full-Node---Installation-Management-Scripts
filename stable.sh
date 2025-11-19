@@ -46,9 +46,9 @@ GENESIS_ZIP_URL="https://stable-testnet-data.s3.us-east-1.amazonaws.com/stable_t
 RPC_CFG_ZIP_URL="https://stable-testnet-data.s3.us-east-1.amazonaws.com/rpc_node_config.zip"
 SNAPSHOT_URL="https://stable-snapshot.s3.eu-central-1.amazonaws.com/snapshot.tar.lz4"
 
-GENESIS_SHA256_EXPECTED="1fa02f3e50d93c947677a470ead6e1258b676781b2f986e565ed5337705bccd5"
+GENESIS_SHA256_EXPECTED="66afbb6e57e6faf019b3021de299125cddab61d433f28894db751252f5b8eaf2"
 
-# Базовые peers (для первичной установки)
+# Базовые peers (официальные из документации Stable)
 PEERS="5ed0f977a26ccf290e184e364fb04e268ef16430@37.187.147.27:26656,128accd3e8ee379bfdf54560c21345451c7048c7@37.187.147.22:26656"
 # Резервный набор из 10 пиров (если оставить ввод пустым)
 BACKUP_PEERS="e8dc4eb1aed53078d90209c7d8d19d10e79e40bb@62.84.184.22:26656,babe0a3c95868b13cafe31d3473ab646268b7ceb@217.76.62.42:26656,9b9897064ed6a27f3e44d3269ebe9bc06e1ba233@217.76.55.225:26656,91947248cd012523a7b8cfe40791e09465031396@38.242.158.172:26656,86dab3dc399c33ff9770fd089f51125d004a2fe3@130.185.118.7:26656,0bbbed1c8c054f66d45e81a11520456f42e7fca7@45.8.132.10:26656,68a099f9fcf3a3fcff6e549105d206125b51d973@62.169.31.251:26656,0a09e1e1c96f3e8be3204bf10d35ac64294ca826@109.199.108.76:26656,5db9f874c394590ce45c7d946fbd1a1afbf01d21@5.189.136.244:26656,d941c5214bd00b2652a638397c1121fa4a51eae4@89.117.58.6:26656"
