@@ -937,16 +937,13 @@ start_realtime_monitor(){
     clear
     
     # Заголовок
-    echo "+===============================================================================+"
-    echo "| STABLE NODE - REAL-TIME MONITOR                                             |"
-    echo "| Press Ctrl+C to exit                                                        |"
-    echo "+===============================================================================+"
+    echo ""
+    echo -e "${cBold}STABLE NODE - REAL-TIME MONITOR${c0}"
+    echo "Press Ctrl+C to exit"
     echo ""
     
     # NODE STATUS
-    echo "+-----------------------------------------------------------------------------+"
-    echo "| NODE STATUS                                                                 |"
-    echo "+-----------------------------------------------------------------------------+"
+    echo -e "${cBold}NODE STATUS:${c0}"
     
     if systemctl is-active --quiet "${SERVICE_NAME}"; then
       echo -e "  ${cG}*${c0} Service:        ${cG}${cBold}RUNNING${c0}"
@@ -985,9 +982,7 @@ start_realtime_monitor(){
     echo ""
     
     # CPU USAGE
-    echo "+-----------------------------------------------------------------------------+"
-    echo "| CPU USAGE                                                                   |"
-    echo "+-----------------------------------------------------------------------------+"
+    echo -e "${cBold}CPU USAGE:${c0}"
     
     CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1 | cut -d'.' -f1)
     echo -ne "  Overall:        "
@@ -1009,9 +1004,7 @@ start_realtime_monitor(){
     echo ""
     
     # MEMORY USAGE
-    echo "+-----------------------------------------------------------------------------+"
-    echo "| MEMORY USAGE                                                                |"
-    echo "+-----------------------------------------------------------------------------+"
+    echo -e "${cBold}MEMORY USAGE:${c0}"
     
     MEM_INFO=$(free -m)
     MEM_TOTAL=$(echo "$MEM_INFO" | awk 'NR==2 {print $2}')
@@ -1035,9 +1028,7 @@ start_realtime_monitor(){
     echo ""
     
     # DISK USAGE
-    echo "+-----------------------------------------------------------------------------+"
-    echo "| DISK USAGE                                                                  |"
-    echo "+-----------------------------------------------------------------------------+"
+    echo -e "${cBold}DISK USAGE:${c0}"
     
     DISK_INFO=$(df -h / 2>/dev/null | awk 'NR==2 {print $2, $3, $5}')
     DISK_TOTAL=$(echo "$DISK_INFO" | awk '{print $1}')
@@ -1050,9 +1041,7 @@ start_realtime_monitor(){
     echo ""
     
     # NETWORK & PORTS
-    echo "+-----------------------------------------------------------------------------+"
-    echo "| NETWORK & PORTS                                                             |"
-    echo "+-----------------------------------------------------------------------------+"
+    echo -e "${cBold}NETWORK & PORTS:${c0}"
     
     echo "  P2P Port:       ${P2P_PORT_DETECT:-26656}"
     echo "  RPC Port:       ${RPC_PORT_DETECT:-26657}"
@@ -1071,10 +1060,9 @@ start_realtime_monitor(){
     echo ""
     
     # Footer
-    echo "==============================================================================="
+    echo ""
     CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "Last update: ${CURRENT_TIME}  |  Refresh: 3s"
-    echo "Tip: Press Ctrl+C to exit"
+    echo -e "${cDim}Last update: ${CURRENT_TIME}  |  Refresh: 3s${c0}"
     echo ""
     
     sleep 3
