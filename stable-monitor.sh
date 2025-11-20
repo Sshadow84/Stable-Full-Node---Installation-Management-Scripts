@@ -66,7 +66,7 @@ detect_ports() {
 # Определяем порты при запуске
 detect_ports
 
-# Функция для отрисовки красивого градиентного прогресс-бара
+# Функция для отрисовки красивого градиентного прогресс-бара (ASCII версия)
 draw_bar() {
   local percent=$1
   local width=30
@@ -75,7 +75,6 @@ draw_bar() {
   
   # Выбор цвета с градиентом
   local color=$BRIGHT_GREEN
-  local bar_char="█"
   
   if [ $percent -ge 90 ]; then
     color=$BRIGHT_RED
@@ -91,11 +90,11 @@ draw_bar() {
     color=$BRIGHT_CYAN
   fi
   
-  # Отрисовка бара с рамкой
+  # Отрисовка бара с ASCII символами
   printf "${GRAY}[${NC}${color}"
-  printf "%${filled}s" | tr ' ' "$bar_char"
+  printf "%${filled}s" | tr ' ' '='
   printf "${NC}${DIM}"
-  printf "%${empty}s" | tr ' ' '░'
+  printf "%${empty}s" | tr ' ' '-'
   printf "${NC}${GRAY}]${NC} ${BOLD}%3d%%${NC}" $percent
 }
 
@@ -125,18 +124,18 @@ show_header() {
   echo -e "${PINK}  ███████║   ██║   ██║  ██║██████╔╝███████╗███████╗${NC}"
   echo -e "${PINK2}  ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝${NC}"
   echo ""
-  echo -e "${BRIGHT_CYAN}╔═══════════════════════════════════════════════════════════════════════════════╗${NC}"
-  echo -e "${BRIGHT_CYAN}║${NC} ${BOLD}${WHITE}🚀 REAL-TIME RESOURCE MONITOR${NC}                                              ${BRIGHT_CYAN}║${NC}"
-  echo -e "${BRIGHT_CYAN}║${NC} ${DIM}${GRAY}Press ${WHITE}Ctrl+C${GRAY} to exit${NC}                                                         ${BRIGHT_CYAN}║${NC}"
-  echo -e "${BRIGHT_CYAN}╚═══════════════════════════════════════════════════════════════════════════════╝${NC}"
+  echo -e "${BRIGHT_CYAN}+===============================================================================+${NC}"
+  echo -e "${BRIGHT_CYAN}|${NC} ${BOLD}${WHITE} REAL-TIME RESOURCE MONITOR${NC}                                                ${BRIGHT_CYAN}|${NC}"
+  echo -e "${BRIGHT_CYAN}|${NC} ${DIM}${GRAY}Press ${WHITE}Ctrl+C${GRAY} to exit${NC}                                                           ${BRIGHT_CYAN}|${NC}"
+  echo -e "${BRIGHT_CYAN}+===============================================================================+${NC}"
   echo ""
 }
 
 # Функция получения статуса ноды
 get_node_status() {
-  echo -e "${MAGENTA}╭─────────────────────────────────────────────────────────────────────────────╮${NC}"
-  echo -e "${MAGENTA}│${NC} ${BOLD}${BRIGHT_CYAN}🔷 NODE STATUS${NC}                                                                ${MAGENTA}│${NC}"
-  echo -e "${MAGENTA}╰─────────────────────────────────────────────────────────────────────────────╯${NC}"
+  echo -e "${MAGENTA}+-----------------------------------------------------------------------------+${NC}"
+  echo -e "${MAGENTA}|${NC} ${BOLD}${BRIGHT_CYAN} NODE STATUS${NC}                                                                ${MAGENTA}|${NC}"
+  echo -e "${MAGENTA}+-----------------------------------------------------------------------------+${NC}"
   
   # Проверка статуса сервиса
   if systemctl is-active --quiet $SERVICE_NAME; then
@@ -188,9 +187,9 @@ get_node_status() {
 
 # Функция отображения CPU
 show_cpu() {
-  echo -e "${YELLOW}╭─────────────────────────────────────────────────────────────────────────────╮${NC}"
-  echo -e "${YELLOW}│${NC} ${BOLD}${ORANGE}⚡ CPU USAGE${NC}                                                                  ${YELLOW}│${NC}"
-  echo -e "${YELLOW}╰─────────────────────────────────────────────────────────────────────────────╯${NC}"
+  echo -e "${YELLOW}+-----------------------------------------------------------------------------+${NC}"
+  echo -e "${YELLOW}|${NC} ${BOLD}${ORANGE} CPU USAGE${NC}                                                                    ${YELLOW}|${NC}"
+  echo -e "${YELLOW}+-----------------------------------------------------------------------------+${NC}"
   
   # Общая загрузка CPU
   CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1 | cut -d'.' -f1)
@@ -217,9 +216,9 @@ show_cpu() {
 
 # Функция отображения RAM
 show_memory() {
-  echo -e "${PURPLE}╭─────────────────────────────────────────────────────────────────────────────╮${NC}"
-  echo -e "${PURPLE}│${NC} ${BOLD}${MAGENTA}💾 MEMORY USAGE${NC}                                                               ${PURPLE}│${NC}"
-  echo -e "${PURPLE}╰─────────────────────────────────────────────────────────────────────────────╯${NC}"
+  echo -e "${PURPLE}+-----------------------------------------------------------------------------+${NC}"
+  echo -e "${PURPLE}|${NC} ${BOLD}${MAGENTA} MEMORY USAGE${NC}                                                                 ${PURPLE}|${NC}"
+  echo -e "${PURPLE}+-----------------------------------------------------------------------------+${NC}"
   
   # Общая память
   MEM_INFO=$(free -m)
@@ -257,9 +256,9 @@ show_memory() {
 
 # Функция отображения диска
 show_disk() {
-  echo -e "${BRIGHT_BLUE}╭─────────────────────────────────────────────────────────────────────────────╮${NC}"
-  echo -e "${BRIGHT_BLUE}│${NC} ${BOLD}${CYAN}💿 DISK USAGE${NC}                                                                 ${BRIGHT_BLUE}│${NC}"
-  echo -e "${BRIGHT_BLUE}╰─────────────────────────────────────────────────────────────────────────────╯${NC}"
+  echo -e "${BRIGHT_BLUE}+-----------------------------------------------------------------------------+${NC}"
+  echo -e "${BRIGHT_BLUE}|${NC} ${BOLD}${CYAN} DISK USAGE${NC}                                                                   ${BRIGHT_BLUE}|${NC}"
+  echo -e "${BRIGHT_BLUE}+-----------------------------------------------------------------------------+${NC}"
   
   # Общее использование диска
   DISK_INFO=$(df -h / | awk 'NR==2 {print $2, $3, $5}')
@@ -295,9 +294,9 @@ show_disk() {
 
 # Функция отображения сетевой статистики
 show_network() {
-  echo -e "${BRIGHT_GREEN}╭─────────────────────────────────────────────────────────────────────────────╮${NC}"
-  echo -e "${BRIGHT_GREEN}│${NC} ${BOLD}${GREEN}🌐 NETWORK & PORTS${NC}                                                            ${BRIGHT_GREEN}│${NC}"
-  echo -e "${BRIGHT_GREEN}╰─────────────────────────────────────────────────────────────────────────────╯${NC}"
+  echo -e "${BRIGHT_GREEN}+-----------------------------------------------------------------------------+${NC}"
+  echo -e "${BRIGHT_GREEN}|${NC} ${BOLD}${GREEN} NETWORK & PORTS${NC}                                                              ${BRIGHT_GREEN}|${NC}"
+  echo -e "${BRIGHT_GREEN}+-----------------------------------------------------------------------------+${NC}"
   
   # Показываем порты с индикацией кастомные или стандартные
   if [ "$P2P_PORT" == "26656" ]; then
@@ -346,10 +345,10 @@ show_dashboard() {
     show_disk
     show_network
     
-    echo -e "${MAGENTA}═══════════════════════════════════════════════════════════════════════════════${NC}"
+    echo -e "${MAGENTA}===============================================================================${NC}"
     CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-    echo -e "${DIM}${GRAY}⏱️  Last update: ${WHITE}${CURRENT_TIME}${GRAY}  │  🔄 Refresh: ${WHITE}3s${NC}"
-    echo -e "${DIM}${GRAY}💡 Tip: Press ${WHITE}Ctrl+C${GRAY} to exit the monitor${NC}"
+    echo -e "${DIM}${GRAY}Last update: ${WHITE}${CURRENT_TIME}${GRAY}  |  Refresh: ${WHITE}3s${NC}"
+    echo -e "${DIM}${GRAY}Tip: Press ${WHITE}Ctrl+C${GRAY} to exit the monitor${NC}"
     echo ""
     
     sleep 3

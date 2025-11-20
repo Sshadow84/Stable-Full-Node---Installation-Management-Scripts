@@ -177,6 +177,7 @@ tr(){
       hc_mem_ok)   echo "Memory usage";;
       hc_mem_high) echo "High memory usage";;
       hc_done)     echo "Health Check Complete";;
+      hc_monitor_question) echo "Launch real-time interactive monitoring?";;
 
       snap_ask)    echo "Apply snapshot now? [y/N]:";;
       snap_do)     echo "Applying snapshot...";;
@@ -317,6 +318,7 @@ tr(){
       hc_mem_ok)   echo "Занято памяти";;
       hc_mem_high) echo "Высокая загрузка памяти";;
       hc_done)     echo "Проверка завершена";;
+      hc_monitor_question) echo "Запустить интерактивный мониторинг в реальном времени?";;
 
       snap_ask)    echo "Подтянуть снапшот сейчас? [y/N]:";;
       snap_do)     echo "Применяю снапшот...";;
@@ -885,6 +887,213 @@ version_node(){
 }
 
 # -----------------------------
+# Real-time monitoring
+# -----------------------------
+start_realtime_monitor(){
+  need curl; need jq
+  
+  # Определяем порты
+  RPC_PORT_DETECT="26657"
+  P2P_PORT_DETECT="26656"
+  if [ -f "$HOME_DIR/config/config.toml" ]; then
+    RPC_LINE=$(awk '/^\[rpc\]/,/^\[/ {if (/^laddr =/) print}' "$HOME_DIR/config/config.toml" | head -1)
+    if [ -n "$RPC_LINE" ]; then
+      RPC_CUSTOM=$(echo "$RPC_LINE" | grep -oP ':\d+' | grep -oP '\d+' | tail -1)
+      [ -n "$RPC_CUSTOM" ] && [ "$RPC_CUSTOM" != "0" ] && RPC_PORT_DETECT="$RPC_CUSTOM"
+    fi
+    
+    P2P_LINE=$(awk '/^\[p2p\]/,/^\[/ {if (/^laddr =/) print}' "$HOME_DIR/config/config.toml" | head -1)
+    if [ -n "$P2P_LINE" ]; then
+      P2P_CUSTOM=$(echo "$P2P_LINE" | grep -oP ':\d+' | grep -oP '\d+' | tail -1)
+      [ -n "$P2P_CUSTOM" ] && [ "$P2P_CUSTOM" != "0" ] && P2P_PORT_DETECT="$P2P_CUSTOM"
+    fi
+  fi
+  
+  # Функция отрисовки прогресс-бара
+  draw_bar_monitor() {
+    local percent=$1
+    local width=30
+    local filled=$((percent * width / 100))
+    local empty=$((width - filled))
+    
+    # Выбор цвета
+    local color=$cG
+    if [ $percent -ge 90 ]; then
+      color=$cR
+    elif [ $percent -ge 70 ]; then
+      color=$cY
+    fi
+    
+    printf "${color}["
+    printf "%${filled}s" | tr ' ' '='
+    printf "${c0}"
+    printf "%${empty}s" | tr ' ' '-'
+    printf "] ${cBold}%3d%%${c0}" $percent
+  }
+  
+  while true; do
+    clear
+    
+    # Заголовок
+    echo -e "${cM}+===============================================================================+${c0}"
+    echo -e "${cM}|${c0} ${cBold} STABLE NODE - REAL-TIME MONITOR${c0}                                          ${cM}|${c0}"
+    echo -e "${cM}|${c0} ${cDim}Press Ctrl+C to exit${c0}                                                       ${cM}|${c0}"
+    echo -e "${cM}+===============================================================================+${c0}"
+    echo ""
+    
+    # NODE STATUS
+    echo -e "${cC}+-----------------------------------------------------------------------------+${c0}"
+    echo -e "${cC}|${c0} ${cBold} NODE STATUS${c0}                                                                ${cC}|${c0}"
+    echo -e "${cC}+-----------------------------------------------------------------------------+${c0}"
+    
+    if systemctl is-active --quiet "${SERVICE_NAME}"; then
+      echo -e "  ${cG}*${c0} Service:        ${cG}${cBold}RUNNING${c0}"
+      
+      STATUS_JSON=$(curl -s --connect-timeout 2 localhost:${RPC_PORT_DETECT}/status 2>/dev/null)
+      NET_JSON=$(curl -s --connect-timeout 2 localhost:${RPC_PORT_DETECT}/net_info 2>/dev/null)
+      
+      if [ -n "$STATUS_JSON" ] && echo "$STATUS_JSON" | jq -e . >/dev/null 2>&1; then
+        CATCHING_UP=$(echo "$STATUS_JSON" | jq -r '.result.sync_info.catching_up' 2>/dev/null)
+        LATEST_HEIGHT=$(echo "$STATUS_JSON" | jq -r '.result.sync_info.latest_block_height' 2>/dev/null)
+        
+        if [ "$CATCHING_UP" == "false" ]; then
+          echo -e "  ${cG}*${c0} Sync Status:    ${cG}${cBold}SYNCED${c0}"
+        else
+          echo -e "  ${cY}*${c0} Sync Status:    ${cY}${cBold}SYNCING...${c0}"
+        fi
+        
+        echo -e "  ${cC}>${c0} Block Height:   ${cBold}${LATEST_HEIGHT:-N/A}${c0}"
+      else
+        echo -e "  ${cY}!${c0} RPC Status:     ${cY}NOT RESPONDING (port ${RPC_PORT_DETECT})${c0}"
+      fi
+      
+      if [ -n "$NET_JSON" ]; then
+        N_PEERS=$(echo "$NET_JSON" | jq -r '.result.n_peers' 2>/dev/null)
+        if [ "$N_PEERS" -ge 3 ]; then
+          echo -e "  ${cG}*${c0} Connected Peers: ${cG}${cBold}${N_PEERS}${c0} ${cG}(good)${c0}"
+        elif [ "$N_PEERS" -gt 0 ]; then
+          echo -e "  ${cY}*${c0} Connected Peers: ${cY}${cBold}${N_PEERS}${c0} ${cY}(low)${c0}"
+        else
+          echo -e "  ${cR}*${c0} Connected Peers: ${cR}${cBold}${N_PEERS}${c0} ${cR}(isolated)${c0}"
+        fi
+      fi
+    else
+      echo -e "  ${cR}*${c0} Service:        ${cR}${cBold}STOPPED${c0}"
+    fi
+    echo ""
+    
+    # CPU USAGE
+    echo -e "${cY}+-----------------------------------------------------------------------------+${c0}"
+    echo -e "${cY}|${c0} ${cBold} CPU USAGE${c0}                                                                    ${cY}|${c0}"
+    echo -e "${cY}+-----------------------------------------------------------------------------+${c0}"
+    
+    CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1 | cut -d'.' -f1)
+    echo -ne "  Overall:        "
+    draw_bar_monitor ${CPU_USAGE:-0}
+    echo ""
+    
+    if systemctl is-active --quiet "${SERVICE_NAME}"; then
+      STABLED_CPU=$(ps aux | grep "[s]tabled start" | awk '{print $3}' | cut -d'.' -f1)
+      if [ -n "$STABLED_CPU" ]; then
+        echo -ne "  stabled:        "
+        draw_bar_monitor ${STABLED_CPU:-0}
+        echo ""
+      fi
+    fi
+    
+    LOAD_AVG=$(uptime | awk -F'load average:' '{print $2}' | xargs)
+    CORES=$(nproc)
+    echo -e "  ${cDim}Load Average:   ${cBold}${LOAD_AVG}${cDim} (${CORES} cores)${c0}"
+    echo ""
+    
+    # MEMORY USAGE
+    echo -e "${cM}+-----------------------------------------------------------------------------+${c0}"
+    echo -e "${cM}|${c0} ${cBold} MEMORY USAGE${c0}                                                                 ${cM}|${c0}"
+    echo -e "${cM}+-----------------------------------------------------------------------------+${c0}"
+    
+    MEM_INFO=$(free -m)
+    MEM_TOTAL=$(echo "$MEM_INFO" | awk 'NR==2 {print $2}')
+    MEM_USED=$(echo "$MEM_INFO" | awk 'NR==2 {print $3}')
+    MEM_PERCENT=$((MEM_USED * 100 / MEM_TOTAL))
+    
+    echo -ne "  System:         "
+    draw_bar_monitor ${MEM_PERCENT}
+    echo -e "  ${cDim}(${MEM_USED} MB / ${MEM_TOTAL} MB)${c0}"
+    
+    if systemctl is-active --quiet "${SERVICE_NAME}"; then
+      STABLED_RSS=$(ps aux | grep "[s]tabled start" | awk '{print $6}')
+      if [ -n "$STABLED_RSS" ]; then
+        STABLED_MB=$((STABLED_RSS / 1024))
+        STABLED_PERCENT=$((STABLED_MB * 100 / MEM_TOTAL))
+        echo -ne "  stabled:        "
+        draw_bar_monitor ${STABLED_PERCENT}
+        echo -e "  ${cDim}(${STABLED_MB} MB)${c0}"
+      fi
+    fi
+    echo ""
+    
+    # DISK USAGE
+    echo -e "${cB}+-----------------------------------------------------------------------------+${c0}"
+    echo -e "${cB}|${c0} ${cBold} DISK USAGE${c0}                                                                   ${cB}|${c0}"
+    echo -e "${cB}+-----------------------------------------------------------------------------+${c0}"
+    
+    DISK_INFO=$(df -h / | awk 'NR==2 {print $2, $3, $5}')
+    DISK_TOTAL=$(echo "$DISK_INFO" | awk '{print $1}')
+    DISK_USED=$(echo "$DISK_INFO" | awk '{print $2}')
+    DISK_PERCENT=$(echo "$DISK_INFO" | awk '{print $3}' | tr -d '%')
+    
+    echo -ne "  Root (/)        "
+    draw_bar_monitor ${DISK_PERCENT}
+    echo -e "  ${cDim}(${DISK_USED} / ${DISK_TOTAL})${c0}"
+    
+    if [ -d "$HOME_DIR" ]; then
+      NODE_SIZE=$(du -sh "$HOME_DIR" 2>/dev/null | awk '{print $1}')
+      echo -e "  ${cDim}Node Data:      ${cBold}${NODE_SIZE:-N/A}${cDim} ($HOME_DIR)${c0}"
+    fi
+    echo ""
+    
+    # NETWORK & PORTS
+    echo -e "${cG}+-----------------------------------------------------------------------------+${c0}"
+    echo -e "${cG}|${c0} ${cBold} NETWORK & PORTS${c0}                                                              ${cG}|${c0}"
+    echo -e "${cG}+-----------------------------------------------------------------------------+${c0}"
+    
+    if [ "$P2P_PORT_DETECT" == "26656" ]; then
+      echo -e "  ${cC}>${c0} P2P Port:       ${cBold}${P2P_PORT_DETECT}${c0} ${cDim}(standard)${c0}"
+    else
+      echo -e "  ${cC}>${c0} P2P Port:       ${cBold}${P2P_PORT_DETECT}${c0} ${cY}(custom)${c0}"
+    fi
+    
+    if [ "$RPC_PORT_DETECT" == "26657" ]; then
+      echo -e "  ${cC}>${c0} RPC Port:       ${cBold}${RPC_PORT_DETECT}${c0} ${cDim}(standard)${c0}"
+    else
+      echo -e "  ${cC}>${c0} RPC Port:       ${cBold}${RPC_PORT_DETECT}${c0} ${cY}(custom)${c0}"
+    fi
+    
+    if ss -tlnp | grep -q ":${P2P_PORT_DETECT}"; then
+      echo -e "  ${cG}*${c0} P2P Listening:  ${cG}YES${c0}"
+    else
+      echo -e "  ${cR}*${c0} P2P Listening:  ${cR}NO${c0}"
+    fi
+    
+    if ss -tlnp | grep -q ":${RPC_PORT_DETECT}"; then
+      echo -e "  ${cG}*${c0} RPC Listening:  ${cG}YES${c0}"
+    else
+      echo -e "  ${cR}*${c0} RPC Listening:  ${cR}NO${c0}"
+    fi
+    echo ""
+    
+    # Footer
+    echo -e "${cM}===============================================================================${c0}"
+    CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+    echo -e "${cDim}Last update: ${cBold}${CURRENT_TIME}${cDim}  |  Refresh: ${cBold}3s${c0}"
+    echo -e "${cDim}Tip: Press ${cBold}Ctrl+C${cDim} to exit${c0}"
+    echo ""
+    
+    sleep 3
+  done
+}
+
+# -----------------------------
 # Health Check
 # -----------------------------
 health_check(){
@@ -942,6 +1151,14 @@ health_check(){
   fi
 
   echo -e "\n${cBold}${cM}=== $(tr hc_done) ===${c0}"
+  echo ""
+  
+  # Предлагаем запустить интерактивный мониторинг
+  echo -e "${cC}$(tr hc_monitor_question)${c0}"
+  read -r -p "[y/N]: " MONITOR_CHOICE
+  if [[ "$MONITOR_CHOICE" =~ ^[Yy]$ ]]; then
+    start_realtime_monitor
+  fi
 }
 
 # -----------------------------
