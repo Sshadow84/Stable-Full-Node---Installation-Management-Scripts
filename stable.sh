@@ -1039,19 +1039,14 @@ start_realtime_monitor(){
     echo -e "${cB}|${c0} ${cBold} DISK USAGE${c0}                                                                   ${cB}|${c0}"
     echo -e "${cB}+-----------------------------------------------------------------------------+${c0}"
     
-    DISK_INFO=$(df -h / | awk 'NR==2 {print $2, $3, $5}')
+    DISK_INFO=$(df -h / 2>/dev/null | awk 'NR==2 {print $2, $3, $5}')
     DISK_TOTAL=$(echo "$DISK_INFO" | awk '{print $1}')
     DISK_USED=$(echo "$DISK_INFO" | awk '{print $2}')
     DISK_PERCENT=$(echo "$DISK_INFO" | awk '{print $3}' | tr -d '%')
     
     echo -ne "  Root (/)        "
-    draw_bar_monitor ${DISK_PERCENT}
-    echo -e "  ${cDim}(${DISK_USED} / ${DISK_TOTAL})${c0}"
-    
-    if [ -d "$HOME_DIR" ]; then
-      NODE_SIZE=$(du -sh "$HOME_DIR" 2>/dev/null | awk '{print $1}')
-      echo -e "  ${cDim}Node Data:      ${cBold}${NODE_SIZE:-N/A}${cDim} ($HOME_DIR)${c0}"
-    fi
+    draw_bar_monitor ${DISK_PERCENT:-0}
+    echo -e "  ${cDim}(${DISK_USED:-N/A} / ${DISK_TOTAL:-N/A})${c0}"
     echo ""
     
     # NETWORK & PORTS
