@@ -922,11 +922,21 @@ start_realtime_monitor(){
       color=$cY
     fi
     
-    printf "${color}["
-    printf "%${filled}s" | tr ' ' '='
-    printf "${c0}"
-    printf "%${empty}s" | tr ' ' '-'
-    printf "] ${cBold}%3d%%${c0}" $percent
+    # Отрисовка бара
+    local bar=""
+    local i
+    
+    # Заполненная часть
+    for ((i=0; i<filled; i++)); do
+      bar="${bar}="
+    done
+    
+    # Пустая часть
+    for ((i=0; i<empty; i++)); do
+      bar="${bar}-"
+    done
+    
+    printf "${color}[%s]${c0} ${cBold}%3d%%${c0}" "$bar" $percent
   }
   
   while true; do
