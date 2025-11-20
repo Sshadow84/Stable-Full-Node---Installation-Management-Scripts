@@ -922,21 +922,15 @@ start_realtime_monitor(){
       color=$cY
     fi
     
-    # Отрисовка бара
-    local bar=""
-    local i
+    # Создаем шаблонную строку
+    local template="=============================="  # 30 символов =
+    local empty_template="------------------------------"  # 30 символов -
     
-    # Заполненная часть
-    for ((i=0; i<filled; i++)); do
-      bar="${bar}="
-    done
+    # Вырезаем нужное количество
+    local filled_bar="${template:0:$filled}"
+    local empty_bar="${empty_template:0:$empty}"
     
-    # Пустая часть
-    for ((i=0; i<empty; i++)); do
-      bar="${bar}-"
-    done
-    
-    printf "${color}[%s]${c0} ${cBold}%3d%%${c0}" "$bar" $percent
+    printf "${color}[%s%s]${c0} ${cBold}%3d%%${c0}" "$filled_bar" "$empty_bar" $percent
   }
   
   while true; do
