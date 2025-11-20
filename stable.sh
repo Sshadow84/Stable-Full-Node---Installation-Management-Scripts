@@ -937,16 +937,16 @@ start_realtime_monitor(){
     clear
     
     # Заголовок
-    echo -e "${cM}+===============================================================================+${c0}"
-    echo -e "${cM}|${c0} ${cBold} STABLE NODE - REAL-TIME MONITOR${c0}                                          ${cM}|${c0}"
-    echo -e "${cM}|${c0} ${cDim}Press Ctrl+C to exit${c0}                                                       ${cM}|${c0}"
-    echo -e "${cM}+===============================================================================+${c0}"
+    echo "+===============================================================================+"
+    echo "| STABLE NODE - REAL-TIME MONITOR                                             |"
+    echo "| Press Ctrl+C to exit                                                        |"
+    echo "+===============================================================================+"
     echo ""
     
     # NODE STATUS
-    echo -e "${cC}+-----------------------------------------------------------------------------+${c0}"
-    echo -e "${cC}|${c0} ${cBold} NODE STATUS${c0}                                                                ${cC}|${c0}"
-    echo -e "${cC}+-----------------------------------------------------------------------------+${c0}"
+    echo "+-----------------------------------------------------------------------------+"
+    echo "| NODE STATUS                                                                 |"
+    echo "+-----------------------------------------------------------------------------+"
     
     if systemctl is-active --quiet "${SERVICE_NAME}"; then
       echo -e "  ${cG}*${c0} Service:        ${cG}${cBold}RUNNING${c0}"
@@ -985,9 +985,9 @@ start_realtime_monitor(){
     echo ""
     
     # CPU USAGE
-    echo -e "${cY}+-----------------------------------------------------------------------------+${c0}"
-    echo -e "${cY}|${c0} ${cBold} CPU USAGE${c0}                                                                    ${cY}|${c0}"
-    echo -e "${cY}+-----------------------------------------------------------------------------+${c0}"
+    echo "+-----------------------------------------------------------------------------+"
+    echo "| CPU USAGE                                                                   |"
+    echo "+-----------------------------------------------------------------------------+"
     
     CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1 | cut -d'.' -f1)
     echo -ne "  Overall:        "
@@ -1009,9 +1009,9 @@ start_realtime_monitor(){
     echo ""
     
     # MEMORY USAGE
-    echo -e "${cM}+-----------------------------------------------------------------------------+${c0}"
-    echo -e "${cM}|${c0} ${cBold} MEMORY USAGE${c0}                                                                 ${cM}|${c0}"
-    echo -e "${cM}+-----------------------------------------------------------------------------+${c0}"
+    echo "+-----------------------------------------------------------------------------+"
+    echo "| MEMORY USAGE                                                                |"
+    echo "+-----------------------------------------------------------------------------+"
     
     MEM_INFO=$(free -m)
     MEM_TOTAL=$(echo "$MEM_INFO" | awk 'NR==2 {print $2}')
@@ -1035,9 +1035,9 @@ start_realtime_monitor(){
     echo ""
     
     # DISK USAGE
-    echo -e "${cB}+-----------------------------------------------------------------------------+${c0}"
-    echo -e "${cB}|${c0} ${cBold} DISK USAGE${c0}                                                                   ${cB}|${c0}"
-    echo -e "${cB}+-----------------------------------------------------------------------------+${c0}"
+    echo "+-----------------------------------------------------------------------------+"
+    echo "| DISK USAGE                                                                  |"
+    echo "+-----------------------------------------------------------------------------+"
     
     DISK_INFO=$(df -h / 2>/dev/null | awk 'NR==2 {print $2, $3, $5}')
     DISK_TOTAL=$(echo "$DISK_INFO" | awk '{print $1}')
@@ -1046,44 +1046,35 @@ start_realtime_monitor(){
     
     echo -ne "  Root (/)        "
     draw_bar_monitor ${DISK_PERCENT:-0}
-    echo -e "  ${cDim}(${DISK_USED:-N/A} / ${DISK_TOTAL:-N/A})${c0}"
+    echo "  (${DISK_USED:-N/A} / ${DISK_TOTAL:-N/A})"
     echo ""
     
     # NETWORK & PORTS
-    echo -e "${cG}+-----------------------------------------------------------------------------+${c0}"
-    echo -e "${cG}|${c0} ${cBold} NETWORK & PORTS${c0}                                                              ${cG}|${c0}"
-    echo -e "${cG}+-----------------------------------------------------------------------------+${c0}"
+    echo "+-----------------------------------------------------------------------------+"
+    echo "| NETWORK & PORTS                                                             |"
+    echo "+-----------------------------------------------------------------------------+"
     
-    if [ "$P2P_PORT_DETECT" == "26656" ]; then
-      echo -e "  ${cC}>${c0} P2P Port:       ${cBold}${P2P_PORT_DETECT}${c0} ${cDim}(standard)${c0}"
+    echo "  P2P Port:       ${P2P_PORT_DETECT:-26656}"
+    echo "  RPC Port:       ${RPC_PORT_DETECT:-26657}"
+    
+    if ss -tlnp 2>/dev/null | grep -q ":${P2P_PORT_DETECT}"; then
+      echo -e "  P2P Listening:  ${cG}YES${c0}"
     else
-      echo -e "  ${cC}>${c0} P2P Port:       ${cBold}${P2P_PORT_DETECT}${c0} ${cY}(custom)${c0}"
+      echo -e "  P2P Listening:  ${cR}NO${c0}"
     fi
     
-    if [ "$RPC_PORT_DETECT" == "26657" ]; then
-      echo -e "  ${cC}>${c0} RPC Port:       ${cBold}${RPC_PORT_DETECT}${c0} ${cDim}(standard)${c0}"
+    if ss -tlnp 2>/dev/null | grep -q ":${RPC_PORT_DETECT}"; then
+      echo -e "  RPC Listening:  ${cG}YES${c0}"
     else
-      echo -e "  ${cC}>${c0} RPC Port:       ${cBold}${RPC_PORT_DETECT}${c0} ${cY}(custom)${c0}"
-    fi
-    
-    if ss -tlnp | grep -q ":${P2P_PORT_DETECT}"; then
-      echo -e "  ${cG}*${c0} P2P Listening:  ${cG}YES${c0}"
-    else
-      echo -e "  ${cR}*${c0} P2P Listening:  ${cR}NO${c0}"
-    fi
-    
-    if ss -tlnp | grep -q ":${RPC_PORT_DETECT}"; then
-      echo -e "  ${cG}*${c0} RPC Listening:  ${cG}YES${c0}"
-    else
-      echo -e "  ${cR}*${c0} RPC Listening:  ${cR}NO${c0}"
+      echo -e "  RPC Listening:  ${cR}NO${c0}"
     fi
     echo ""
     
     # Footer
-    echo -e "${cM}===============================================================================${c0}"
+    echo "==============================================================================="
     CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
-    echo -e "${cDim}Last update: ${cBold}${CURRENT_TIME}${cDim}  |  Refresh: ${cBold}3s${c0}"
-    echo -e "${cDim}Tip: Press ${cBold}Ctrl+C${cDim} to exit${c0}"
+    echo "Last update: ${CURRENT_TIME}  |  Refresh: 3s"
+    echo "Tip: Press Ctrl+C to exit"
     echo ""
     
     sleep 3
