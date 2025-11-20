@@ -907,31 +907,6 @@ start_realtime_monitor(){
     fi
   fi
   
-  # Функция отрисовки прогресс-бара
-  draw_bar_monitor() {
-    local percent=$1
-    local width=30
-    local filled=$((percent * width / 100))
-    local empty=$((width - filled))
-    
-    # Выбор цвета
-    local color=$cG
-    if [ $percent -ge 90 ]; then
-      color=$cR
-    elif [ $percent -ge 70 ]; then
-      color=$cY
-    fi
-    
-    # Создаем шаблонную строку
-    local template="=============================="  # 30 символов =
-    local empty_template="------------------------------"  # 30 символов -
-    
-    # Вырезаем нужное количество
-    local filled_bar="${template:0:$filled}"
-    local empty_bar="${empty_template:0:$empty}"
-    
-    printf "${color}[%s%s]${c0} ${cBold}%3d%%${c0}" "$filled_bar" "$empty_bar" $percent
-  }
   
   while true; do
     clear
@@ -985,22 +960,18 @@ start_realtime_monitor(){
     echo -e "${cBold}CPU USAGE:${c0}"
     
     CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d'%' -f1 | cut -d'.' -f1)
-    echo -ne "  Overall:        "
-    draw_bar_monitor ${CPU_USAGE:-0}
-    echo ""
+    echo "  Overall: ${CPU_USAGE:-0}%"
     
     if systemctl is-active --quiet "${SERVICE_NAME}"; then
       STABLED_CPU=$(ps aux | grep "[s]tabled start" | awk '{print $3}' | cut -d'.' -f1)
       if [ -n "$STABLED_CPU" ]; then
-        echo -ne "  stabled:        "
-        draw_bar_monitor ${STABLED_CPU:-0}
-        echo ""
+        echo "  stabled: ${STABLED_CPU:-0}%"
       fi
     fi
     
     LOAD_AVG=$(uptime | awk -F'load average:' '{print $2}' | xargs)
     CORES=$(nproc)
-    echo -e "  ${cDim}Load Average:   ${cBold}${LOAD_AVG}${cDim} (${CORES} cores)${c0}"
+    echo "  Load Average: ${LOAD_AVG} (${CORES} cores)"
     echo ""
     
     # MEMORY USAGE
@@ -1011,18 +982,14 @@ start_realtime_monitor(){
     MEM_USED=$(echo "$MEM_INFO" | awk 'NR==2 {print $3}')
     MEM_PERCENT=$((MEM_USED * 100 / MEM_TOTAL))
     
-    echo -ne "  System:         "
-    draw_bar_monitor ${MEM_PERCENT}
-    echo -e "  ${cDim}(${MEM_USED} MB / ${MEM_TOTAL} MB)${c0}"
+    echo "  System: ${MEM_PERCENT}% (${MEM_USED} MB / ${MEM_TOTAL} MB)"
     
     if systemctl is-active --quiet "${SERVICE_NAME}"; then
       STABLED_RSS=$(ps aux | grep "[s]tabled start" | awk '{print $6}')
       if [ -n "$STABLED_RSS" ]; then
         STABLED_MB=$((STABLED_RSS / 1024))
         STABLED_PERCENT=$((STABLED_MB * 100 / MEM_TOTAL))
-        echo -ne "  stabled:        "
-        draw_bar_monitor ${STABLED_PERCENT}
-        echo -e "  ${cDim}(${STABLED_MB} MB)${c0}"
+        echo "  stabled: ${STABLED_PERCENT}% (${STABLED_MB} MB)"
       fi
     fi
     echo ""
@@ -1035,9 +1002,7 @@ start_realtime_monitor(){
     DISK_USED=$(echo "$DISK_INFO" | awk '{print $2}')
     DISK_PERCENT=$(echo "$DISK_INFO" | awk '{print $3}' | tr -d '%')
     
-    echo -ne "  Root (/)        "
-    draw_bar_monitor ${DISK_PERCENT:-0}
-    echo "  (${DISK_USED:-N/A} / ${DISK_TOTAL:-N/A})"
+    echo "  Root (/): ${DISK_PERCENT:-0}% (${DISK_USED:-N/A} / ${DISK_TOTAL:-N/A})"
     echo ""
     
     # NETWORK & PORTS
