@@ -4,7 +4,7 @@
 
 ---
 
-### 1) 📦 Prepare Server
+### 1) 📦 Initialize Server Environment
 
 **What it does:**
 - Updates APT package list (`apt update`)
@@ -28,7 +28,7 @@ This is the first mandatory step before node installation. Prepares a clean serv
 
 ---
 
-### 2) ⚙️ Install Node
+### 2) ⚙️ Deploy Stable Node
 
 **What it does:**
 
@@ -92,7 +92,7 @@ Complete automatic installation and configuration of Stable node from A to Z. Af
 
 ---
 
-### 3) 🚀 Start Node
+### 3) 🚀 Start Node Service
 
 **What it does:**
 - Executes command `systemctl start stabled`
@@ -109,7 +109,7 @@ Starts the node after installation or after stopping. After start, node begins w
 
 ---
 
-### 4) 📜 Node Logs
+### 4) 📜 View Event Log
 
 **What it does:**
 - Executes `journalctl -u stabled -f -n 200`
@@ -133,7 +133,7 @@ Real-time monitoring of node operation. Here you'll see:
 
 ---
 
-### 5) 📊 Node Status
+### 5) 📊 Node Operation Info
 
 **What it does:**
 - Executes `systemctl status stabled`
@@ -154,7 +154,7 @@ Quick status check without detailed logs. Allows confirming node is running.
 
 ---
 
-### 6) 🔄 Restart Node
+### 6) 🔄 Restart Service
 
 **What it does:**
 - Executes `systemctl restart stabled`
@@ -176,7 +176,7 @@ Node restart to apply changes or solve problems. After restart, node:
 
 ---
 
-### 7) 🗑️ Remove Node
+### 7) 🗑️ Complete Node Removal
 
 **What it does:**
 
@@ -222,7 +222,7 @@ Complete node removal from server with all data. Returns server to "before insta
 
 ---
 
-### 8) 🏷️ Node Version
+### 8) 🏷️ Show Binary Version
 
 **What it does:**
 - Executes `stabled version` command
@@ -242,7 +242,7 @@ Check current node version. Useful for:
 
 ---
 
-### 9) 💚 Health Check
+### 9) 💚 System Diagnostics
 
 **What it does:**
 
@@ -288,7 +288,7 @@ Quick node health diagnostics "at a glance". Shows all critical parameters in co
 
 ---
 
-### 10) 📸 Apply Official Snapshot (reset & resync)
+### 10) 📸 Quick Sync (snapshot)
 
 **What it does:**
 
@@ -335,7 +335,7 @@ Quick node synchronization to current network state. Instead of downloading all 
 
 ---
 
-### 11) ⏰ Auto-snapshot (timer)
+### 11) ⏰ Auto-sync Scheduler
 
 **What it does:**
 
@@ -393,7 +393,7 @@ Submenu for managing automatic snapshot application:
 
 ---
 
-### 12) 🌐 Update Peers and Restart
+### 12) 🌐 Update Peer List
 
 **What it does:**
 
@@ -453,7 +453,7 @@ d941c5214bd00b2652a638397c1121fa4a51eae4@89.117.58.6:26656
 
 ---
 
-### 13) 🤖 Auto-upgrade Binary (from logs)
+### 13) 🤖 Intelligent Upgrade
 
 **What it does:**
 
@@ -493,7 +493,7 @@ Automatic update to network-required version. When network transitions to new ve
 
 ---
 
-### 14) ⬆️ Upgrade to Specific Version
+### 14) ⬆️ Install Target Version
 
 **What it does:**
 
@@ -527,7 +527,7 @@ Update to specific version when you know exactly which version is needed.
 
 ---
 
-### 15) ⬇️ Rollback to Previous Binary
+### 15) ⬇️ Restore Previous Version
 
 **What it does:**
 
@@ -564,7 +564,7 @@ Return to previous working version if new version caused problems.
 
 ---
 
-### 16) 💾 Create Keys Backup
+### 16) 💾 Archive Critical Data
 
 **What it does:**
 
@@ -708,7 +708,7 @@ systemctl start stabled
 
 ---
 
-### 0) ❌ Exit
+### 0) ❌ Terminate
 
 **What it does:**
 - Terminates script execution
