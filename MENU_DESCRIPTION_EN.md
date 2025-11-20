@@ -708,6 +708,170 @@ systemctl start stabled
 
 ---
 
+### 17) 🔧 Change Node Ports
+
+**What it does:**
+
+1. **Check Current Ports:**
+   - Reads current configuration from `config.toml`
+   - Shows ports in use:
+     - P2P (default 26656)
+     - RPC (default 26657)
+     - Proxy App (default 26658)
+     - pprof (default 6060)
+
+2. **Detect Conflicts:**
+   - Scans occupied ports using `ss -tlnp`
+   - Identifies which processes use these ports
+   - Shows conflicting services
+
+3. **Suggest New Ports:**
+   - Automatically suggests ports with +10 offset
+   - Example: 26656 → 26666, 26657 → 26667
+   - Shows difference (was/now)
+
+4. **Apply Changes:**
+   - Stops `stabled` service
+   - Updates `/root/.stabled/config/config.toml`:
+     - `laddr` for P2P
+     - `laddr` for RPC
+     - `proxy_app`
+     - `pprof_laddr`
+   - Updates `/etc/systemd/system/stabled.service`:
+     - Adds flags `--rpc.laddr`, `--p2p.laddr`, `--proxy_app`
+   - Opens new ports in UFW (if installed)
+   - Reloads systemd daemon
+   - Starts node with new ports
+
+5. **Verify Result:**
+   - Shows new port configuration
+   - Provides commands to check status
+   - Displays logs if startup failed
+
+**Purpose:**
+
+Resolve port conflicts when:
+- 🚫 Another blockchain node already running on server (Hippo, Cosmos, Osmosis)
+- 🚫 Node won't start with error `address already in use`
+- 🚫 Ports occupied by other services
+
+**When to use:**
+
+1. **On startup error:**
+   ```
+   failed to listen on 0.0.0.0:26657: bind: address already in use
+   ```
+
+2. **Installing second node on same server:**
+   - First node (Hippo): ports 26656, 26657
+   - Second node (Stable): ports 26666, 26667
+
+3. **Migrating from another node:**
+   - Old node still running
+   - Need to start new one on different ports
+
+**Technical Information:**
+
+```bash
+# Standard ports (default):
+P2P:       26656 (TCP/UDP) - for other nodes to connect
+RPC:       26657 (TCP)     - for API requests
+Proxy App: 26658 (TCP)     - internal application
+pprof:     6060  (TCP)     - profiling
+
+# Alternative ports (after change):
+P2P:       26666 (TCP/UDP)
+RPC:       26667 (TCP)
+Proxy App: 26668 (TCP)
+pprof:     6070  (TCP)
+```
+
+**Usage Example:**
+
+```
+17) 🔧 Change Node Ports
+
+Current ports:
+  P2P:       26656
+  RPC:       26657
+  Proxy App: 26658
+  pprof:     6060
+
+Checking for port conflicts...
+⚠️  Port conflict detected!
+  ⚠️  RPC port 26657 occupied:
+  LISTEN 0 4096 127.0.0.1:26657 0.0.0.0:* users:(("hippod",pid=6059,fd=59))
+
+Suggested new ports:
+  P2P:       26666 (was 26656)
+  RPC:       26667 (was 26657)
+  Proxy App: 26668 (was 26658)
+  pprof:     6070  (was 6060)
+
+Apply these changes? [y/N]: y
+
+Stopping node service...
+Updating config.toml...
+Updating systemd service...
+Opening firewall ports...
+✅ Firewall: port 26666 opened
+Starting node with new ports...
+
+✅ Ports successfully changed!
+
+New port configuration:
+  P2P:       26666
+  RPC:       26667
+  Proxy App: 26668
+  pprof:     6070
+
+Check node status with:
+  curl -s localhost:26667/status | jq .result.sync_info.catching_up
+  curl -s localhost:26667/net_info | jq .result.n_peers
+```
+
+**⚠️ IMPORTANT:**
+
+1. **After port change:**
+   - All RPC requests must use new port (26667 instead of 26657)
+   - P2P connections will use new port (26666)
+   - Update all monitoring scripts
+
+2. **Firewall:**
+   - Script automatically opens new P2P port in UFW
+   - Check: `ufw status | grep 26666`
+
+3. **Rollback:**
+   - To restore standard ports, run item 17 again
+   - Or edit files manually
+
+4. **Multiple Nodes:**
+   - Each node must use unique ports
+   - Typical scheme: 26656/26657, 26666/26667, 26676/26677, etc.
+
+**Real Case (like on your RPC server):**
+
+```
+Server: RPC
+Node 1: Hippo    - ports 26656, 26657, 6060 (standard)
+Node 2: Stable   - ports 26666, 26667, 6070 (via item 17)
+
+Result: both nodes work without conflicts!
+
+Check Hippo:
+  curl -s localhost:26657/status | jq .result.sync_info.catching_up
+
+Check Stable:
+  curl -s localhost:26667/status | jq .result.sync_info.catching_up
+```
+
+**When NOT to use:**
+- ❌ If node not installed
+- ❌ If ports not occupied and node works normally
+- ❌ If you don't understand why you need this - better don't touch
+
+---
+
 ### 0) ❌ Terminate
 
 **What it does:**

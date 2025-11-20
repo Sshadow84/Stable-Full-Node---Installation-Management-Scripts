@@ -105,6 +105,7 @@ tr(){
       m14) echo "Install target version";;
       m15) echo "Restore previous version";;
       m16) echo "Archive critical data";;
+      m17) echo "Change node ports";;
       m0) echo "Terminate";;
 
       prep_start)  echo "Updating APT and installing dependencies...";;
@@ -142,6 +143,23 @@ tr(){
       backup_success) echo "✅ Backup created successfully!";;
       backup_location) echo "📁 Backup location";;
       backup_download) echo "💡 Download to your PC: scp root@YOUR_SERVER_IP:";;
+      
+      ports_title) echo "Change Node Ports";;
+      ports_current) echo "Current ports:";;
+      ports_checking) echo "Checking for port conflicts...";;
+      ports_conflict) echo "⚠️  Port conflict detected!";;
+      ports_suggest) echo "Suggested new ports:";;
+      ports_confirm) echo "Apply these changes?";;
+      ports_stopping) echo "Stopping node service...";;
+      ports_updating_config) echo "Updating config.toml...";;
+      ports_updating_service) echo "Updating systemd service...";;
+      ports_opening_firewall) echo "Opening firewall ports...";;
+      ports_firewall_ok) echo "✅ Firewall: port opened";;
+      ports_restarting) echo "Starting node with new ports...";;
+      ports_success) echo "✅ Ports successfully changed!";;
+      ports_failed) echo "⚠️  Failed to start node. Check logs:";;
+      ports_new_ports) echo "New ports configuration:";;
+      ports_check_hint) echo "Check node status with:";;
 
       ver_title)   echo "Stable Node Version";;
       ver_bin)     echo "Binary version:";;
@@ -226,6 +244,7 @@ tr(){
       m14) echo "Установить целевую версию";;
       m15) echo "Восстановить предыдущую версию";;
       m16) echo "Архивация критических данных";;
+      m17) echo "Изменить порты ноды";;
       m0) echo "Завершить работу";;
 
       prep_start)  echo "Обновляю APT и ставлю зависимости...";;
@@ -264,6 +283,23 @@ tr(){
       backup_success) echo "✅ Бекап успешно создан!";;
       backup_location) echo "📁 Местоположение бекапа";;
       backup_download) echo "💡 Скачать на ПК: scp root@ВАШ_IP_СЕРВЕРА:";;
+      
+      ports_title) echo "Изменение портов ноды";;
+      ports_current) echo "Текущие порты:";;
+      ports_checking) echo "Проверяю конфликты портов...";;
+      ports_conflict) echo "⚠️  Обнаружен конфликт портов!";;
+      ports_suggest) echo "Предлагаемые новые порты:";;
+      ports_confirm) echo "Применить эти изменения?";;
+      ports_stopping) echo "Останавливаю службу ноды...";;
+      ports_updating_config) echo "Обновляю config.toml...";;
+      ports_updating_service) echo "Обновляю systemd сервис...";;
+      ports_opening_firewall) echo "Открываю порты в файрволе...";;
+      ports_firewall_ok) echo "✅ Файрвол: порт открыт";;
+      ports_restarting) echo "Запускаю ноду с новыми портами...";;
+      ports_success) echo "✅ Порты успешно изменены!";;
+      ports_failed) echo "⚠️  Не удалось запустить ноду. Проверьте логи:";;
+      ports_new_ports) echo "Новая конфигурация портов:";;
+      ports_check_hint) echo "Проверьте статус ноды командами:";;
 
       ver_title)   echo "Версия ноды Stable";;
       ver_bin)     echo "Версия ноды:";;
@@ -947,6 +983,118 @@ backup_keys(){
 }
 
 # -----------------------------
+# Change Ports
+# -----------------------------
+change_ports(){
+  info "$(tr ports_title)"
+  
+  if [ ! -d "$HOME_DIR" ]; then
+    warn "$(tr backup_not_installed)"
+    return
+  fi
+  
+  # Показываем текущие порты
+  info "$(tr ports_current)"
+  CURRENT_P2P=$(grep "^laddr.*tcp://0.0.0.0:" "$HOME_DIR/config/config.toml" | grep -oP ':\K[0-9]+' | head -1)
+  CURRENT_RPC=$(grep "^laddr.*tcp.*26[0-9]" "$HOME_DIR/config/config.toml" | grep "rpc" -A1 | grep -oP ':\K[0-9]+' | tail -1)
+  CURRENT_PROXY=$(grep "^proxy_app" "$HOME_DIR/config/config.toml" | grep -oP ':\K[0-9]+')
+  CURRENT_PPROF=$(grep "^pprof_laddr" "$HOME_DIR/config/config.toml" | grep -oP ':\K[0-9]+')
+  
+  echo -e "${cC}  P2P:       ${cBold}${CURRENT_P2P:-26656}${c0}"
+  echo -e "${cC}  RPC:       ${cBold}${CURRENT_RPC:-26657}${c0}"
+  echo -e "${cC}  Proxy App: ${cBold}${CURRENT_PROXY:-26658}${c0}"
+  echo -e "${cC}  pprof:     ${cBold}${CURRENT_PPROF:-6060}${c0}"
+  echo ""
+  
+  # Проверяем занятость портов
+  info "$(tr ports_checking)"
+  P2P_USED=$(ss -tlnp | grep ":${CURRENT_P2P:-26656}" | grep -v "stabled" | wc -l)
+  RPC_USED=$(ss -tlnp | grep ":${CURRENT_RPC:-26657}" | grep -v "stabled" | wc -l)
+  
+  if [ "$P2P_USED" -gt 0 ] || [ "$RPC_USED" -gt 0 ]; then
+    warn "$(tr ports_conflict)"
+    if [ "$P2P_USED" -gt 0 ]; then
+      echo -e "${cY}  ⚠️  P2P порт ${CURRENT_P2P:-26656} занят:${c0}"
+      ss -tlnp | grep ":${CURRENT_P2P:-26656}" | grep -v "stabled"
+    fi
+    if [ "$RPC_USED" -gt 0 ]; then
+      echo -e "${cY}  ⚠️  RPC порт ${CURRENT_RPC:-26657} занят:${c0}"
+      ss -tlnp | grep ":${CURRENT_RPC:-26657}" | grep -v "stabled"
+    fi
+    echo ""
+  fi
+  
+  # Предлагаем новые порты
+  info "$(tr ports_suggest)"
+  NEW_P2P=$((${CURRENT_P2P:-26656} + 10))
+  NEW_RPC=$((${CURRENT_RPC:-26657} + 10))
+  NEW_PROXY=$((${CURRENT_PROXY:-26658} + 10))
+  NEW_PPROF=$((${CURRENT_PPROF:-6060} + 10))
+  
+  echo -e "${cG}  P2P:       ${cBold}${NEW_P2P}${c0} ${cY}(было ${CURRENT_P2P:-26656})${c0}"
+  echo -e "${cG}  RPC:       ${cBold}${NEW_RPC}${c0} ${cY}(было ${CURRENT_RPC:-26657})${c0}"
+  echo -e "${cG}  Proxy App: ${cBold}${NEW_PROXY}${c0} ${cY}(было ${CURRENT_PROXY:-26658})${c0}"
+  echo -e "${cG}  pprof:     ${cBold}${NEW_PPROF}${c0} ${cY}(было ${CURRENT_PPROF:-6060})${c0}"
+  echo ""
+  
+  # Спрашиваем подтверждение
+  read -r -p "$(tr ports_confirm) [y/N]: " CONFIRM
+  if [[ ! "$CONFIRM" =~ ^[Yy]$ ]]; then
+    warn "$(tr remove_cancel)"
+    return
+  fi
+  
+  # Останавливаем ноду
+  info "$(tr ports_stopping)"
+  systemctl stop stabled
+  
+  # Меняем порты в config.toml
+  info "$(tr ports_updating_config)"
+  sed -i "s|laddr = \"tcp://0.0.0.0:${CURRENT_P2P:-26656}\"|laddr = \"tcp://0.0.0.0:${NEW_P2P}\"|" "$HOME_DIR/config/config.toml"
+  sed -i "s|laddr = \"tcp://.*:${CURRENT_RPC:-26657}\"|laddr = \"tcp://0.0.0.0:${NEW_RPC}\"|" "$HOME_DIR/config/config.toml"
+  sed -i "s|proxy_app = \"tcp://.*:${CURRENT_PROXY:-26658}\"|proxy_app = \"tcp://127.0.0.1:${NEW_PROXY}\"|" "$HOME_DIR/config/config.toml"
+  sed -i "s|pprof_laddr = \".*:${CURRENT_PPROF:-6060}\"|pprof_laddr = \"127.0.0.1:${NEW_PPROF}\"|" "$HOME_DIR/config/config.toml"
+  
+  # Меняем ExecStart в systemd
+  info "$(tr ports_updating_service)"
+  sed -i "s|ExecStart=.*|ExecStart=/usr/bin/stabled start --chain-id $CHAIN_ID --rpc.laddr tcp://0.0.0.0:${NEW_RPC} --p2p.laddr tcp://0.0.0.0:${NEW_P2P} --proxy_app tcp://127.0.0.1:${NEW_PROXY}|" /etc/systemd/system/stabled.service
+  
+  # Открываем порты в UFW
+  info "$(tr ports_opening_firewall)"
+  if command -v ufw &> /dev/null; then
+    ufw allow ${NEW_P2P}/tcp &>/dev/null
+    ufw allow ${NEW_P2P}/udp &>/dev/null
+    ok "$(tr ports_firewall_ok) ${NEW_P2P}"
+  fi
+  
+  # Перезагружаем systemd и запускаем
+  info "$(tr ports_restarting)"
+  systemctl daemon-reload
+  systemctl start stabled
+  sleep 3
+  
+  # Проверяем статус
+  if systemctl is-active --quiet stabled; then
+    ok "$(tr ports_success)"
+    echo ""
+    info "$(tr ports_new_ports)"
+    echo -e "${cG}  P2P:       ${cBold}${NEW_P2P}${c0}"
+    echo -e "${cG}  RPC:       ${cBold}${NEW_RPC}${c0}"
+    echo -e "${cG}  Proxy App: ${cBold}${NEW_PROXY}${c0}"
+    echo -e "${cG}  pprof:     ${cBold}${NEW_PPROF}${c0}"
+    echo ""
+    info "$(tr ports_check_hint)"
+    echo -e "${cC}  curl -s localhost:${NEW_RPC}/status | jq .result.sync_info.catching_up${c0}"
+    echo -e "${cC}  curl -s localhost:${NEW_RPC}/net_info | jq .result.n_peers${c0}"
+  else
+    warn "$(tr ports_failed)"
+    journalctl -u stabled -n 20 --no-pager
+  fi
+  
+  echo ""
+}
+
+# -----------------------------
 # Menu
 # -----------------------------
 menu(){
@@ -968,6 +1116,7 @@ menu(){
   echo -e "14) ⬆️  $(tr m14)"
   echo -e "15) ⬇️  $(tr m15)"
   echo -e "16) 💾 $(tr m16)"
+  echo -e "17) 🔧 $(tr m17)"
   echo -e "0)  ❌ $(tr m0)"
   hr
   read -rp "> " c
@@ -988,6 +1137,7 @@ menu(){
     14) manual_upgrade;        pause ;;
     15) rollback_binary;       pause ;;
     16) backup_keys;           pause ;;
+    17) change_ports;          pause ;;
     0)  exit 0 ;;
     *)  err "$(tr invalid_choice)";  pause ;;
   esac
