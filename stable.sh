@@ -104,13 +104,17 @@ tr(){
       m13) echo "Auto-upgrade binary (detect from logs)";;
       m14) echo "Upgrade binary to specific version";;
       m15) echo "Rollback to previous binary";;
+      m16) echo "Create keys backup";;
       m0) echo "Exit";;
 
       prep_start)  echo "Updating APT and installing dependencies...";;
       prep_done)   echo "Server is ready.";;
       prep_firewall) echo "Configuring firewall...";;
       prep_firewall_done) echo "Firewall configured (port 26656 opened)";;
-      ask_moniker) echo "Moniker (node name):";;
+      ask_moniker) echo "📝 Enter a UNIQUE name for your node (moniker):";;
+      ask_moniker_empty) echo "⚠️  Name cannot be empty! Enter moniker.";;
+      ask_moniker_ascii) echo "⚠️  Use only Latin letters, numbers, dash (-) and underscore (_)";;
+      ask_moniker_ok) echo "✅ Node name set:";;
       bin_fetch)   echo "Downloading and installing stabled binary...";;
       init_node)   echo "Initializing node with chain-id ${CHAIN_ID}...";;
 
@@ -130,6 +134,14 @@ tr(){
       remove_cancel) echo "Canceled.";;
       remove_done) echo "Node and its logs removed.";;
       invalid_choice) echo "Invalid choice.";;
+      
+      backup_title) echo "Keys Backup";;
+      backup_not_installed) echo "Node is not installed. Nothing to backup.";;
+      backup_copying) echo "Copying critical files...";;
+      backup_archiving) echo "Creating archive...";;
+      backup_success) echo "✅ Backup created successfully!";;
+      backup_location) echo "📁 Backup location";;
+      backup_download) echo "💡 Download to your PC: scp root@YOUR_SERVER_IP:";;
 
       ver_title)   echo "Stable Node Version";;
       ver_bin)     echo "Binary version:";;
@@ -213,13 +225,17 @@ tr(){
       m13) echo "Авто-обновление бинаря (по логам)";;
       m14) echo "Обновить бинарь до указанной версии";;
       m15) echo "Откатиться на предыдущий бинарь";;
+      m16) echo "Создать бекап ключей";;
       m0) echo "Выход";;
 
       prep_start)  echo "Обновляю APT и ставлю зависимости...";;
       prep_done)   echo "Сервер готов.";;
       prep_firewall) echo "Настраиваю файрвол...";;
       prep_firewall_done) echo "Файрвол настроен (порт 26656 открыт)";;
-      ask_moniker) echo "Моникер (имя узла):";;
+      ask_moniker) echo "📝 Введите УНИКАЛЬНОЕ имя вашей ноды (moniker):";;
+      ask_moniker_empty) echo "⚠️  Имя не может быть пустым! Введите moniker.";;
+      ask_moniker_ascii) echo "⚠️  Используйте только латинские буквы, цифры, дефис (-) и подчеркивание (_)";;
+      ask_moniker_ok) echo "✅ Имя ноды установлено:";;
       bin_fetch)   echo "Скачиваю и устанавливаю бинарь stabled...";;
       init_node)   echo "Инициализирую ноду с chain-id ${CHAIN_ID}...";;
 
@@ -240,6 +256,14 @@ tr(){
       remove_cancel) echo "Отмена.";;
       remove_done) echo "Нода и её логи удалены.";;
       invalid_choice) echo "Неверный выбор.";;
+      
+      backup_title) echo "Резервное копирование ключей";;
+      backup_not_installed) echo "Нода не установлена. Нечего бэкапить.";;
+      backup_copying) echo "Копирую критически важные файлы...";;
+      backup_archiving) echo "Создаю архив...";;
+      backup_success) echo "✅ Бекап успешно создан!";;
+      backup_location) echo "📁 Местоположение бекапа";;
+      backup_download) echo "💡 Скачать на ПК: scp root@ВАШ_IP_СЕРВЕРА:";;
 
       ver_title)   echo "Версия ноды Stable";;
       ver_bin)     echo "Версия ноды:";;
@@ -376,8 +400,27 @@ install_node(){
   esac
   info "arch=${ARCH}; url=${DL_URL}"
 
-  read -r -p "$(tr ask_moniker) " MONIKER
-  MONIKER=${MONIKER:-StableNodeN3R}
+  # ОБЯЗАТЕЛЬНЫЙ ввод moniker с проверками
+  while true; do
+    read -r -p "$(tr ask_moniker) " MONIKER
+    
+    # Проверка на пустоту
+    if [ -z "$MONIKER" ]; then
+      warn "$(tr ask_moniker_empty)"
+      continue
+    fi
+    
+    # Проверка на ASCII (только латиница, цифры, - и _)
+    if ! echo "$MONIKER" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+      warn "$(tr ask_moniker_ascii)"
+      continue
+    fi
+    
+    # Всё OK - выходим из цикла
+    break
+  done
+  
+  ok "$(tr ask_moniker_ok) $MONIKER"
 
   info "$(tr bin_fetch)"
   cd /root
@@ -866,6 +909,44 @@ health_check(){
 }
 
 # -----------------------------
+# Backup keys
+# -----------------------------
+backup_keys(){
+  info "$(tr backup_title)"
+  
+  if [ ! -d "$HOME_DIR" ]; then
+    warn "$(tr backup_not_installed)"
+    return
+  fi
+
+  BACKUP_ROOT="/root/stable_backups"
+  TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+  BACKUP_TEMP="$BACKUP_ROOT/backup_$TIMESTAMP"
+  
+  mkdir -p "$BACKUP_TEMP"
+  
+  info "$(tr backup_copying)"
+  [ -f "$HOME_DIR/config/priv_validator_key.json" ] && cp "$HOME_DIR/config/priv_validator_key.json" "$BACKUP_TEMP/" 2>/dev/null
+  [ -f "$HOME_DIR/config/node_key.json" ] && cp "$HOME_DIR/config/node_key.json" "$BACKUP_TEMP/" 2>/dev/null
+  [ -f "$HOME_DIR/data/priv_validator_state.json" ] && cp "$HOME_DIR/data/priv_validator_state.json" "$BACKUP_TEMP/" 2>/dev/null
+  [ -f "$HOME_DIR/config/config.toml" ] && cp "$HOME_DIR/config/config.toml" "$BACKUP_TEMP/" 2>/dev/null
+  [ -f "$HOME_DIR/config/app.toml" ] && cp "$HOME_DIR/config/app.toml" "$BACKUP_TEMP/" 2>/dev/null
+  [ -f "$HOME_DIR/config/addrbook.json" ] && cp "$HOME_DIR/config/addrbook.json" "$BACKUP_TEMP/" 2>/dev/null
+  
+  info "$(tr backup_archiving)"
+  cd "$BACKUP_ROOT"
+  tar -czf "stable_backup_$TIMESTAMP.tar.gz" "backup_$TIMESTAMP" 2>/dev/null
+  rm -rf "backup_$TIMESTAMP"
+  
+  BACKUP_FILE="$BACKUP_ROOT/stable_backup_$TIMESTAMP.tar.gz"
+  
+  ok "$(tr backup_success)"
+  echo -e "${cC}$(tr backup_location): ${cBold}$BACKUP_FILE${c0}"
+  echo -e "${cY}$(tr backup_download)$BACKUP_FILE ./${c0}"
+  echo ""
+}
+
+# -----------------------------
 # Menu
 # -----------------------------
 menu(){
@@ -886,6 +967,7 @@ menu(){
   echo -e "13) 🤖 $(tr m13)"
   echo -e "14) ⬆️  $(tr m14)"
   echo -e "15) ⬇️  $(tr m15)"
+  echo -e "16) 💾 $(tr m16)"
   echo -e "0)  ❌ $(tr m0)"
   hr
   read -rp "> " c
@@ -905,6 +987,7 @@ menu(){
     13) auto_upgrade;          pause ;;
     14) manual_upgrade;        pause ;;
     15) rollback_binary;       pause ;;
+    16) backup_keys;           pause ;;
     0)  exit 0 ;;
     *)  err "$(tr invalid_choice)";  pause ;;
   esac

@@ -37,7 +37,8 @@ This is the first mandatory step before node installation. Prepares a clean serv
    - Selects appropriate binary file for download
 
 2. **Node Name Request (Moniker):**
-   - Asks for your node name (default: StableNodeN3R)
+   - Asks for a UNIQUE name for your node (mandatory, Latin characters only)
+   - Validates input: only Latin letters, numbers, dash (-) and underscore (_)
    - This name will be displayed on the network
    - **⚠️ Use ONLY Latin characters (ASCII)!**
 
@@ -560,6 +561,150 @@ Return to previous working version if new version caused problems.
 - They automatically create backups
 - Can only rollback to last previous version
 - For rollback to older versions use step 14
+
+---
+
+### 16) 💾 Create Keys Backup
+
+**What it does:**
+
+1. **Installation Check:**
+   - Verifies presence of `/root/.stabled/` directory
+   - If node not installed - shows warning
+
+2. **Create Temporary Folder:**
+   - Creates directory `/root/stable_backups/backup_YYYY-MM-DD_HH-MM-SS/`
+   - Name format with date and time for uniqueness
+
+3. **Copy Critical Files:**
+   - 🔑 `priv_validator_key.json` - **MOST IMPORTANT!** Validator private key
+   - 🔑 `node_key.json` - Node key for P2P connections
+   - 📊 `priv_validator_state.json` - Validator state (double-sign protection)
+   - ⚙️ `config.toml` - All node settings
+   - ⚙️ `app.toml` - Application settings
+   - 📇 `addrbook.json` - Peer address book
+
+4. **Archiving:**
+   - Creates compressed archive `stable_backup_YYYY-MM-DD_HH-MM-SS.tar.gz`
+   - Removes temporary folder
+   - Keeps only the archive
+
+5. **Save Information:**
+   - Shows path to created archive
+   - Provides command to download to local PC
+
+**Purpose:**
+
+Protection against node access loss in case of:
+- 💥 Server failure (disk failure, OS crash)
+- 🔥 Accidental file deletion
+- 🌪️ Data corruption
+- 🚀 Migration to new server
+- 🔄 System reinstallation
+
+**When to use:**
+
+1. **Mandatory:**
+   - ✅ Right after first node installation (step 2)
+   - ✅ After any critical configuration changes
+   - ✅ Before system update
+   - ✅ Before applying snapshot (step 10)
+
+2. **Recommended:**
+   - 📅 Regularly (weekly or monthly)
+   - 🔧 Before node update (steps 13, 14)
+   - 🛠️ Before any experiments with settings
+
+3. **Just in case:**
+   - Periodically for peace of mind
+
+**Technical Information:**
+
+```bash
+# Backup structure:
+/root/stable_backups/
+└── stable_backup_2024-11-20_15-30-45.tar.gz
+    ├── priv_validator_key.json    (~300 bytes)
+    ├── node_key.json               (~200 bytes)
+    ├── priv_validator_state.json  (~150 bytes)
+    ├── config.toml                 (~25 KB)
+    ├── app.toml                    (~20 KB)
+    └── addrbook.json               (~5-50 KB)
+
+# Total archive size: ~50-100 KB
+```
+
+**How to Download Backup to Your Computer:**
+
+After creating backup, script will show command like:
+```bash
+scp root@YOUR_SERVER_IP:/root/stable_backups/stable_backup_2024-11-20_15-30-45.tar.gz ./
+```
+
+**On Windows** use WinSCP or command in PowerShell:
+```powershell
+scp root@YOUR_SERVER_IP:/root/stable_backups/stable_backup_*.tar.gz C:\backups\
+```
+
+**Restore from Backup:**
+
+If you need to restore node:
+```bash
+# 1. Extract archive
+cd /root/stable_backups/
+tar -xzf stable_backup_2024-11-20_15-30-45.tar.gz
+
+# 2. Stop node
+systemctl stop stabled
+
+# 3. Restore files
+cp backup_2024-11-20_15-30-45/priv_validator_key.json /root/.stabled/config/
+cp backup_2024-11-20_15-30-45/node_key.json /root/.stabled/config/
+cp backup_2024-11-20_15-30-45/priv_validator_state.json /root/.stabled/data/
+cp backup_2024-11-20_15-30-45/config.toml /root/.stabled/config/
+cp backup_2024-11-20_15-30-45/app.toml /root/.stabled/config/
+
+# 4. Start node
+systemctl start stabled
+```
+
+**⚠️ CRITICALLY IMPORTANT:**
+
+1. **Store backups in SAFE place:**
+   - ✅ On local computer (encrypted disk)
+   - ✅ In cloud storage (encrypted archive)
+   - ✅ On external drive (USB)
+   - ❌ DO NOT store only on server!
+
+2. **Loss of `priv_validator_key.json` means:**
+   - ❌ Complete loss of node access
+   - ❌ Impossible to recover
+   - ❌ Loss of all rewards (if any)
+
+3. **DO NOT share backups:**
+   - ❌ Don't send to anyone
+   - ❌ Don't publish on internet
+   - ❌ Don't store in public places
+
+**Usage Examples:**
+
+```bash
+# Scenario 1: After installation
+2) ⚙️  Install node
+3) 🚀 Start node
+16) 💾 Create keys backup ← IMMEDIATELY AFTER INSTALL!
+
+# Scenario 2: Before snapshot
+16) 💾 Create keys backup
+10) 📸 Apply snapshot
+
+# Scenario 3: Regular maintenance
+16) 💾 Create keys backup (weekly)
+```
+
+**When NOT to use:**
+- ❌ If node not installed (step 2 not done yet)
+- ❌ No special need to make 10 backups per day
 
 ---
 
