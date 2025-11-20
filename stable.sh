@@ -97,11 +97,11 @@ tr(){
       m6) echo "Restart service";;
       m7) echo "Complete node removal";;
       m8) echo "Show binary version";;
-      m9) echo "System diagnostics";;
+      m9) echo "Health check";;
       m10) echo "Quick sync (snapshot)";;
       m11) echo "Auto-sync scheduler";;
       m12) echo "Update peer list";;
-      m13) echo "Intelligent upgrade";;
+      m13) echo "Auto-detect upgrades";;
       m14) echo "Install target version";;
       m15) echo "Restore previous version";;
       m16) echo "Archive critical data";;
@@ -218,11 +218,11 @@ tr(){
       m6) echo "Перезапуск службы";;
       m7) echo "Полное удаление ноды";;
       m8) echo "Показать версию бинаря";;
-      m9) echo "Диагностика работоспособности";;
+      m9) echo "Проверка состояния (Health check)";;
       m10) echo "Быстрая синхронизация (snapshot)";;
       m11) echo "Планировщик автосинхронизации";;
       m12) echo "Актуализация списка пиров";;
-      m13) echo "Интеллектуальное обновление";;
+      m13) echo "Автообнаружение обновлений";;
       m14) echo "Установить целевую версию";;
       m15) echo "Восстановить предыдущую версию";;
       m16) echo "Архивация критических данных";;

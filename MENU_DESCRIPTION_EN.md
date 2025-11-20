@@ -242,7 +242,7 @@ Check current node version. Useful for:
 
 ---
 
-### 9) 💚 System Diagnostics
+### 9) 💚 Health Check
 
 **What it does:**
 
@@ -453,7 +453,7 @@ d941c5214bd00b2652a638397c1121fa4a51eae4@89.117.58.6:26656
 
 ---
 
-### 13) 🤖 Intelligent Upgrade
+### 13) 🤖 Auto-detect Upgrades
 
 **What it does:**
 
