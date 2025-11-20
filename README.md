@@ -187,7 +187,7 @@ curl -s localhost:26657/net_info | jq -r '.result.n_peers'
 Запустите панель для просмотра использования ресурсов в реальном времени:
 
 ```bash
-bash stable_usage.sh
+bash stable-monitor.sh
 ```
 
 Отображает:
@@ -371,7 +371,7 @@ systemctl start stabled
 | Скрипт | Назначение | Использование |
 |--------|-----------|---------------|
 | `stable.sh` | Главный установщик и менеджер | `./stable.sh` |
-| `stable_usage.sh` | Панель мониторинга ресурсов | `bash stable_usage.sh` |
+| `stable-monitor.sh` | Панель мониторинга ресурсов | `bash stable-monitor.sh` |
 | `stable-apply-snapshot.sh` | Помощник автоматизации снапшотов | Вызывается systemd таймером |
 
 ---

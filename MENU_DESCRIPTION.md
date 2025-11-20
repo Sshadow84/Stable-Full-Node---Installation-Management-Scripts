@@ -956,7 +956,7 @@ systemctl restart stabled
 ### Мониторинг ресурсов:
 Для просмотра детальной статистики используйте дополнительный скрипт:
 ```bash
-bash stable_usage.sh
+bash stable-monitor.sh
 ```
 
 Он покажет:
